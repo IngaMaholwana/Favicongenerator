@@ -219,86 +219,190 @@
     </div>
 
     <script>
+        // Draw initials favicon into the given canvas at the requested size
         function drawFavicon(canvas, size) {
             const ctx = canvas.getContext('2d');
-            const initials = document.getElementById('initials').value.toUpperCase() || 'IM';
+            const initials = (document.getElementById('initials').value || 'IM').toUpperCase();
             const bgColor = document.getElementById('bgColor').value;
             const textColor = document.getElementById('textColor').value;
             const style = document.getElementById('style').value;
 
-            ctx.clearRect(0, 0, size, size);
+            // Ensure canvas has the required pixel size
+            canvas.width = size;
+            canvas.height = size;
 
-            // Draw background
+            // Clear and draw background
+            ctx.clearRect(0, 0, size, size);
             ctx.fillStyle = bgColor;
-            
+
             if (style === 'circle') {
                 ctx.beginPath();
                 ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
                 ctx.fill();
             } else if (style === 'rounded') {
-                const radius = size * 0.2;
+                const r = Math.round(size * 0.18);
+                // rounded rect
                 ctx.beginPath();
-                ctx.moveTo(radius, 0);
-                ctx.lineTo(size - radius, 0);
-                ctx.quadraticCurveTo(size, 0, size, radius);
-                ctx.lineTo(size, size - radius);
-                ctx.quadraticCurveTo(size, size, size - radius, size);
-                ctx.lineTo(radius, size);
-                ctx.quadraticCurveTo(0, size, 0, size - radius);
-                ctx.lineTo(0, radius);
-                ctx.quadraticCurveTo(0, 0, radius, 0);
+                ctx.moveTo(r, 0);
+                ctx.lineTo(size - r, 0);
+                ctx.quadraticCurveTo(size, 0, size, r);
+                ctx.lineTo(size, size - r);
+                ctx.quadraticCurveTo(size, size, size - r, size);
+                ctx.lineTo(r, size);
+                ctx.quadraticCurveTo(0, size, 0, size - r);
+                ctx.lineTo(0, r);
+                ctx.quadraticCurveTo(0, 0, r, 0);
                 ctx.fill();
             } else {
                 ctx.fillRect(0, 0, size, size);
             }
 
-            // Draw text
+            // Draw initials
             ctx.fillStyle = textColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = bold ${size * 0.5}px Arial, sans-serif;
+
+            // Compute a sensible font size depending on canvas size
+            // Use a slightly larger fraction for very small icons so initials remain legible
+            const fontScale = size <= 32 ? 0.55 : 0.5;
+            const fontSize = Math.max(10, Math.round(size * fontScale));
+            ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
+
+            // Improve crispness for small canvases
+            ctx.imageSmoothingEnabled = false;
             ctx.fillText(initials, size / 2, size / 2);
         }
 
+        // Update the preview canvases
         function updatePreviews() {
             drawFavicon(document.getElementById('canvas16'), 16);
             drawFavicon(document.getElementById('canvas32'), 32);
             drawFavicon(document.getElementById('canvas64'), 64);
         }
 
-        function downloadFavicon() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 32;
-            canvas.height = 32;
-            drawFavicon(canvas, 32);
-
-            canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'favicon.ico';
-                a.click();
-                URL.revokeObjectURL(url);
-            });
+        // Convert a dataURL (base64) to Uint8Array
+        function dataURLToUint8Array(dataURL) {
+            const base64 = dataURL.split(',')[1];
+            const raw = atob(base64);
+            const rawLength = raw.length;
+            const array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; i++) {
+                array[i] = raw.charCodeAt(i);
+            }
+            return array;
         }
 
+        // Build a simple ICO file containing provided PNG images
+        // images: [{width,height,bytes:Uint8Array}, ...]
+        function buildICO(images) {
+            const count = images.length;
+            const headerSize = 6 + 16 * count; // header + entries
+            // Calculate offsets and total size
+            let offset = headerSize;
+            for (const img of images) {
+                img.size = img.bytes.length;
+                img.offset = offset;
+                offset += img.size;
+            }
+
+            const ico = new Uint8Array(offset);
+            const view = new DataView(ico.buffer);
+
+            // Reserved (2 bytes) 0
+            view.setUint16(0, 0, true);
+            // Type (2 bytes) 1 for icon
+            view.setUint16(2, 1, true);
+            // Count (2 bytes)
+            view.setUint16(4, count, true);
+
+            // Write directory entries
+            let entryPos = 6;
+            for (let i = 0; i < images.length; i++) {
+                const img = images[i];
+                // width (1 byte) - 0 means 256
+                ico[entryPos + 0] = img.width >= 256 ? 0 : img.width;
+                // height (1 byte)
+                ico[entryPos + 1] = img.height >= 256 ? 0 : img.height;
+                // color count
+                ico[entryPos + 2] = 0;
+                // reserved
+                ico[entryPos + 3] = 0;
+                // planes (2 bytes)
+                view.setUint16(entryPos + 4, 0, true);
+                // bit count (2 bytes)
+                view.setUint16(entryPos + 6, 32, true);
+                // size in bytes (4 bytes)
+                view.setUint32(entryPos + 8, img.size, true);
+                // offset (4 bytes)
+                view.setUint32(entryPos + 12, img.offset, true);
+
+                entryPos += 16;
+            }
+
+            // Append image bytes
+            for (const img of images) {
+                ico.set(img.bytes, img.offset);
+            }
+
+            return new Blob([ico], { type: 'image/x-icon' });
+        }
+
+        // Create PNG dataURL for a given size synchronously using an offscreen canvas
+        function createPNGDataURL(size) {
+            const off = document.createElement('canvas');
+            off.width = size;
+            off.height = size;
+            drawFavicon(off, size);
+            return off.toDataURL('image/png');
+        }
+
+        // Download favicon.ico containing multiple PNG sizes
+        function downloadFavicon() {
+            // Sizes to include in the .ico file - modern browsers accept PNG-encoded entries
+            const sizes = [16, 32, 48, 64, 128];
+            const images = sizes.map(s => {
+                const dataURL = createPNGDataURL(s);
+                return {
+                    width: s,
+                    height: s,
+                    bytes: dataURLToUint8Array(dataURL)
+                };
+            });
+
+            const icoBlob = buildICO(images);
+            const url = URL.createObjectURL(icoBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'favicon.ico';
+            // Some browsers need the link present in document
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            // Revoke after a short delay to ensure download initiated
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+
+        // Download a single PNG at 512x512
         function downloadPNG() {
             const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
-            drawFavicon(canvas, 512);
+            const size = 512;
+            canvas.width = size;
+            canvas.height = size;
+            drawFavicon(canvas, size);
 
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'favicon.png';
+                document.body.appendChild(a);
                 a.click();
-                URL.revokeObjectURL(url);
-            });
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+            }, 'image/png');
         }
 
-        // Add event listeners
+        // Wire up controls
         document.getElementById('initials').addEventListener('input', updatePreviews);
         document.getElementById('bgColor').addEventListener('input', updatePreviews);
         document.getElementById('textColor').addEventListener('input', updatePreviews);
