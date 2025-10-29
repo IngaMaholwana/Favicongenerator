@@ -211,6 +211,7 @@
         <div class="button-group">
             <button class="btn-primary" onclick="downloadFavicon()">Download favicon.ico</button>
             <button class="btn-secondary" onclick="downloadPNG()">Download PNG</button>
+            <button class="btn-secondary" onclick="downloadSVG()">Download SVG</button>
         </div>
 
         <div class="info">
@@ -400,6 +401,51 @@
                 a.remove();
                 setTimeout(() => URL.revokeObjectURL(url), 2000);
             }, 'image/png');
+        }
+
+        // New: build and download SVG placeholder
+        function buildSVG(size) {
+            const initials = (document.getElementById('initials').value || 'IM').toUpperCase();
+            const bg = document.getElementById('bgColor').value;
+            const text = document.getElementById('textColor').value;
+            const style = document.getElementById('style').value;
+
+            let shape = '';
+            if (style === 'circle') {
+                shape = `<circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${bg}"/>`;
+            } else if (style === 'rounded') {
+                const r = Math.round(size * 0.18);
+                shape = `<rect x="0" y="0" width="${size}" height="${size}" rx="${r}" ry="${r}" fill="${bg}"/>`;
+            } else {
+                shape = `<rect width="${size}" height="${size}" fill="${bg}"/>`;
+            }
+
+            const fontSize = Math.max(10, Math.round(size * 0.5));
+            const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+                `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">\n` +
+                `${shape}\n` +
+                `<text x="50%" y="50%" fill="${text}" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${fontSize}" dominant-baseline="middle" text-anchor="middle">${initials}</text>\n` +
+                `</svg>`;
+
+            return svg;
+        }
+
+        function downloadSVG() {
+            // derive a safe filename from initials
+            const raw = (document.getElementById('initials').value || '').toUpperCase().trim();
+            const safe = raw ? raw.replace(/[^A-Z0-9_-]/gi, '') : 'favicon';
+            const filename = `favicon-${safe}.svg`;
+
+            const svg = buildSVG(512);
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
         }
 
         // Wire up controls
