@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon Generator - Inga Maholwana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .preview-section {
+            margin-bottom: 30px;
+        }
+
+        .canvas-wrapper {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .canvas-container {
+            text-align: center;
+        }
+
+        canvas {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto 10px;
+        }
+
+        .size-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="color"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="color"] {
+            height: 50px;
+            cursor: pointer;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 140px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .info strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Favicon Generator</h1>
+        <p class="subtitle">Create your personal favicon - Inga Maholwana</p>
+
+        <div class="preview-section">
+            <h3 style="margin-bottom: 15px; color: #333;">Preview</h3>
+            <div class="canvas-wrapper">
+                <div class="canvas-container">
+                    <canvas id="canvas16" width="16" height="16"></canvas>
+                    <div class="size-label">16x16</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="canvas32" width="32" height="32"></canvas>
+                    <div class="size-label">32x32</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="canvas64" width="64" height="64"></canvas>
+                    <div class="size-label">64x64</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Initials</label>
+                <input type="text" id="initials" value="IM" maxlength="2" placeholder="Enter initials">
+            </div>
+
+            <div class="control-group">
+                <label>Background Color</label>
+                <input type="color" id="bgColor" value="#667eea">
+            </div>
+
+            <div class="control-group">
+                <label>Text Color</label>
+                <input type="color" id="textColor" value="#ffffff">
+            </div>
+
+            <div class="control-group">
+                <label>Style</label>
+                <select id="style">
+                    <option value="rounded">Rounded Square</option>
+                    <option value="circle">Circle</option>
+                    <option value="square">Square</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="downloadFavicon()">Download favicon.ico</button>
+            <button class="btn-secondary" onclick="downloadPNG()">Download PNG</button>
+            <button class="btn-secondary" onclick="downloadSVG()">Download SVG</button>
+        </div>
+
+        <div class="info">
+            <strong>💡 How to use:</strong> Download the favicon.ico file and place it in your website's root directory. Add <code>&lt;link rel="icon" href="/favicon.ico"&gt;</code> to your HTML &lt;head&gt; section.
+        </div>
+    </div>
+
+    <script>
+        // Draw initials favicon into the given canvas at the requested size
+        function drawFavicon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            const initials = (document.getElementById('initials').value || 'IM').toUpperCase();
+            const bgColor = document.getElementById('bgColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const style = document.getElementById('style').value;
+
+            // Ensure canvas has the required pixel size
+            canvas.width = size;
+            canvas.height = size;
+
+            // Clear and draw background
+            ctx.clearRect(0, 0, size, size);
+            ctx.fillStyle = bgColor;
+
+            if (style === 'circle') {
+                ctx.beginPath();
+                ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (style === 'rounded') {
+                const r = Math.round(size * 0.18);
+                // rounded rect
+                ctx.beginPath();
+                ctx.moveTo(r, 0);
+                ctx.lineTo(size - r, 0);
+                ctx.quadraticCurveTo(size, 0, size, r);
+                ctx.lineTo(size, size - r);
+                ctx.quadraticCurveTo(size, size, size - r, size);
+                ctx.lineTo(r, size);
+                ctx.quadraticCurveTo(0, size, 0, size - r);
+                ctx.lineTo(0, r);
+                ctx.quadraticCurveTo(0, 0, r, 0);
+                ctx.fill();
+            } else {
+                ctx.fillRect(0, 0, size, size);
+            }
+
+            // Draw initials
+            ctx.fillStyle = textColor;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Compute a sensible font size depending on canvas size
+            // Use a slightly larger fraction for very small icons so initials remain legible
+            const fontScale = size <= 32 ? 0.55 : 0.5;
+            const fontSize = Math.max(10, Math.round(size * fontScale));
+            ctx.font = `bold ${fontSize}px Arial, Helvetica, sans-serif`;
+
+            // Improve crispness for small canvases
+            ctx.imageSmoothingEnabled = false;
+            ctx.fillText(initials, size / 2, size / 2);
+        }
+
+        // Update the preview canvases
+        function updatePreviews() {
+            drawFavicon(document.getElementById('canvas16'), 16);
+            drawFavicon(document.getElementById('canvas32'), 32);
+            drawFavicon(document.getElementById('canvas64'), 64);
+        }
+
+        // Convert a dataURL (base64) to Uint8Array
+        function dataURLToUint8Array(dataURL) {
+            const base64 = dataURL.split(',')[1];
+            const raw = atob(base64);
+            const rawLength = raw.length;
+            const array = new Uint8Array(rawLength);
+            for (let i = 0; i < rawLength; i++) {
+                array[i] = raw.charCodeAt(i);
+            }
+            return array;
+        }
+
+        // Build a simple ICO file containing provided PNG images
+        // images: [{width,height,bytes:Uint8Array}, ...]
+        function buildICO(images) {
+            const count = images.length;
+            const headerSize = 6 + 16 * count; // header + entries
+            // Calculate offsets and total size
+            let offset = headerSize;
+            for (const img of images) {
+                img.size = img.bytes.length;
+                img.offset = offset;
+                offset += img.size;
+            }
+
+            const ico = new Uint8Array(offset);
+            const view = new DataView(ico.buffer);
+
+            // Reserved (2 bytes) 0
+            view.setUint16(0, 0, true);
+            // Type (2 bytes) 1 for icon
+            view.setUint16(2, 1, true);
+            // Count (2 bytes)
+            view.setUint16(4, count, true);
+
+            // Write directory entries
+            let entryPos = 6;
+            for (let i = 0; i < images.length; i++) {
+                const img = images[i];
+                // width (1 byte) - 0 means 256
+                ico[entryPos + 0] = img.width >= 256 ? 0 : img.width;
+                // height (1 byte)
+                ico[entryPos + 1] = img.height >= 256 ? 0 : img.height;
+                // color count
+                ico[entryPos + 2] = 0;
+                // reserved
+                ico[entryPos + 3] = 0;
+                // planes (2 bytes)
+                view.setUint16(entryPos + 4, 0, true);
+                // bit count (2 bytes)
+                view.setUint16(entryPos + 6, 32, true);
+                // size in bytes (4 bytes)
+                view.setUint32(entryPos + 8, img.size, true);
+                // offset (4 bytes)
+                view.setUint32(entryPos + 12, img.offset, true);
+
+                entryPos += 16;
+            }
+
+            // Append image bytes
+            for (const img of images) {
+                ico.set(img.bytes, img.offset);
+            }
+
+            return new Blob([ico], { type: 'image/x-icon' });
+        }
+
+        // Create PNG dataURL for a given size synchronously using an offscreen canvas
+        function createPNGDataURL(size) {
+            const off = document.createElement('canvas');
+            off.width = size;
+            off.height = size;
+            drawFavicon(off, size);
+            return off.toDataURL('image/png');
+        }
+
+        // Download favicon.ico containing multiple PNG sizes
+        function downloadFavicon() {
+            // Sizes to include in the .ico file - modern browsers accept PNG-encoded entries
+            const sizes = [16, 32, 48, 64, 128];
+            const images = sizes.map(s => {
+                const dataURL = createPNGDataURL(s);
+                return {
+                    width: s,
+                    height: s,
+                    bytes: dataURLToUint8Array(dataURL)
+                };
+            });
+
+            const icoBlob = buildICO(images);
+            const url = URL.createObjectURL(icoBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'favicon.ico';
+            // Some browsers need the link present in document
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            // Revoke after a short delay to ensure download initiated
+n
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+
+        // Download a single PNG at 512x512
+        function downloadPNG() {
+            const canvas = document.createElement('canvas');
+            const size = 512;
+            canvas.width = size;
+            canvas.height = size;
+            drawFavicon(canvas, size);
+
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'favicon.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+            }, 'image/png');
+        }
+
+        // New: build and download SVG placeholder
+        function buildSVG(size) {
+            const initials = (document.getElementById('initials').value || 'IM').toUpperCase();
+            const bg = document.getElementById('bgColor').value;
+            const text = document.getElementById('textColor').value;
+            const style = document.getElementById('style').value;
+
+            let shape = '';
+            if (style === 'circle') {
+                shape = `<circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${bg}"/>`;
+            } else if (style === 'rounded') {
+                const r = Math.round(size * 0.18);
+                shape = `<rect x="0" y="0" width="${size}" height="${size}" rx="${r}" ry="${r}" fill="${bg}"/>`;
+            } else {
+                shape = `<rect width="${size}" height="${size}" fill="${bg}"/>`;
+            }
+
+            const fontSize = Math.max(10, Math.round(size * 0.5));
+            const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+                `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">\n` +
+                `${shape}\n` +
+                `<text x="50%" y="50%" fill="${text}" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="${fontSize}" dominant-baseline="middle" text-anchor="middle">${initials}</text>\n` +
+                `</svg>`;
+
+            return svg;
+        }
+
+        function downloadSVG() {
+            // derive a safe filename from initials
+            const raw = (document.getElementById('initials').value || '').toUpperCase().trim();
+            const safe = raw ? raw.replace(/[^A-Z0-9_-]/gi, '') : 'favicon';
+            const filename = `favicon-${safe}.svg`;
+
+            const svg = buildSVG(512);
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
+        }
+
+        // Wire up controls
+        document.getElementById('initials').addEventListener('input', updatePreviews);
+        document.getElementById('bgColor').addEventListener('input', updatePreviews);
+        document.getElementById('textColor').addEventListener('input', updatePreviews);
+        document.getElementById('style').addEventListener('change', updatePreviews);
+
+        // Initial draw
+        updatePreviews();
+    </script>
+</body>
+</html>
